@@ -16,6 +16,8 @@ import socketserver
 import urllib.request
 import urllib.parse
 import urllib.error
+import signal
+import sys
 
 # Import our HTTP/3 client implementation
 from simple_http3_client import connect_client
@@ -26,6 +28,9 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger("http3_to_http1_demo")
+
+# Global server instance for cleanup
+_http_server = None
 
 
 class SimpleHttp1Handler(http.server.BaseHTTPRequestHandler):
@@ -124,11 +129,38 @@ class SimpleHttp1Handler(http.server.BaseHTTPRequestHandler):
 
 def run_http1_server(host="localhost", port=8443):
     """Run the HTTP/1 server in a background thread."""
+    global _http_server
     logger.info(f"🚀 Starting HTTP/1 server on {host}:{port}")
     
-    with socketserver.TCPServer((host, port), SimpleHttp1Handler) as httpd:
+    try:
+        _http_server = socketserver.TCPServer((host, port), SimpleHttp1Handler)
+        _http_server.allow_reuse_address = True  # Allow reuse of the address
         logger.info(f"✅ HTTP/1 server is running on {host}:{port}")
-        httpd.serve_forever()
+        _http_server.serve_forever()
+    except OSError as e:
+        if e.errno == 98:  # Address already in use
+            logger.error(f"❌ Port {port} is already in use. Please stop any service using this port.")
+            logger.error("💡 You can kill the process using: sudo lsof -ti:8443 | xargs kill -9")
+        else:
+            logger.error(f"❌ Failed to start HTTP/1 server: {e}")
+        raise
+
+
+def stop_http1_server():
+    """Stop the HTTP/1 server gracefully."""
+    global _http_server
+    if _http_server:
+        logger.info("🛑 Stopping HTTP/1 server...")
+        _http_server.shutdown()
+        _http_server.server_close()
+        logger.info("✅ HTTP/1 server stopped")
+
+
+def signal_handler(signum, frame):
+    """Handle Ctrl+C gracefully."""
+    logger.info("🛑 Received interrupt signal, shutting down...")
+    stop_http1_server()
+    sys.exit(0)
 
 
 def test_http1_server_directly():
@@ -195,6 +227,9 @@ def main():
     print("The proxy should forward requests to the HTTP/1 server on localhost:8443")
     print()
     
+    # Set up signal handler for graceful shutdown
+    signal.signal(signal.SIGINT, signal_handler)
+    
     # Start HTTP/1 server in background thread
     server_thread = threading.Thread(target=run_http1_server, daemon=True)
     server_thread.start()
@@ -219,7 +254,18 @@ def main():
     print("- HTTP/3 client connects to proxy on localhost:443")
     print("- Proxy forwards HTTP/3 requests to HTTP/1 server")
     print("- All communication is logged above")
+    
+    # Clean up
+    stop_http1_server()
 
 
 if __name__ == "__main__":
-    main() 
+    try:
+        main()
+    except KeyboardInterrupt:
+        logger.info("🛑 Demo interrupted by user")
+        stop_http1_server()
+    except Exception as e:
+        logger.error(f"❌ Demo failed: {e}")
+        stop_http1_server()
+        raise 
