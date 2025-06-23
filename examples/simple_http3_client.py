@@ -7,6 +7,7 @@ A lightweight HTTP/3 client built on top of aioquic.
 
 import asyncio
 import logging
+import ssl
 from typing import Dict, Optional, Union
 
 from aioquic.asyncio.client import connect
@@ -174,7 +175,7 @@ async def _make_request_async(host: str, port: int, ca_file: str, method: str, p
         alpn_protocols=H3_ALPN,
     )
     # Disable certificate verification for testing
-    configuration.verify_mode = None
+    configuration.verify_mode = ssl.CERT_NONE
     configuration.server_name = host
     logger.debug("🔧 Client QUIC configuration created (TLS verification disabled)")
     
