@@ -166,16 +166,17 @@ def save_session_ticket(ticket: SessionTicket) -> None:
 async def _make_request_async(host: str, port: int, ca_file: str, method: str, path: str, data: Optional[Union[str, bytes]] = None, headers: Optional[Dict[str, str]] = None) -> HttpResponse:
     """Async function to make a single HTTP/3 request."""
     logger.info(f"🔗 Connecting to HTTP/3 server at {host}:{port}")
-    logger.info(f"🔐 Using CA certificate: {ca_file}")
+    logger.warning("⚠️  TLS certificate verification disabled for testing")
     
     # Create configuration
     configuration = QuicConfiguration(
         is_client=True,
         alpn_protocols=H3_ALPN,
     )
-    configuration.load_verify_locations(ca_file)
+    # Disable certificate verification for testing
+    configuration.verify_mode = None
     configuration.server_name = host
-    logger.debug("🔧 Client QUIC configuration created")
+    logger.debug("🔧 Client QUIC configuration created (TLS verification disabled)")
     
     # Connect and make request
     async with connect(
@@ -220,17 +221,18 @@ class SimpleHttpClientWrapper:
         logger.debug("🔧 Client wrapper close called (no-op)")
 
 
-def connect_client(host: str = "localhost", port: int = 4433, ca_file: str = "tests/pycacert.pem") -> SimpleHttpClientWrapper:
+def connect_client(host: str = "localhost", port: int = 4433, ca_file: str = None) -> SimpleHttpClientWrapper:
     """
     Connect to an HTTP/3 server.
     
     Args:
         host: Server hostname (default: localhost)
         port: Server port (default: 4433)
-        ca_file: Path to CA certificate file
+        ca_file: Path to CA certificate file (ignored, TLS verification disabled for testing)
     
     Returns:
         SimpleHttpClientWrapper: Client object with get() and post() methods
     """
     logger.info(f"🔗 Creating client connection to {host}:{port}")
+    logger.warning("⚠️  TLS certificate verification is disabled for testing")
     return SimpleHttpClientWrapper(host, port, ca_file) 
