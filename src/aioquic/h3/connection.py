@@ -304,13 +304,10 @@ def validate_push_promise_headers(headers: Headers) -> None:
 def validate_request_headers(
     headers: Headers, stream: Optional["H3Stream"] = None
 ) -> None:
+    # Allow any pseudo-headers in requests for non-conformance
     validate_headers(
         headers,
-        allowed_pseudo_headers=frozenset(
-            # FIXME: The pseudo-header :protocol is not actually defined, but
-            # we use it for the WebSocket demo.
-            (b":method", b":scheme", b":authority", b":path", b":protocol")
-        ),
+        allowed_pseudo_headers=frozenset(),  # allow any pseudo-header
         required_pseudo_headers=frozenset((b":method", b":authority")),
         stream=stream,
     )
@@ -321,7 +318,7 @@ def validate_response_headers(
 ) -> None:
     validate_headers(
         headers,
-        allowed_pseudo_headers=frozenset((b":status",)),
+        allowed_pseudo_headers=frozenset(),  # allow any pseudo-header
         required_pseudo_headers=frozenset((b":status",)),
         stream=stream,
     )
