@@ -1134,9 +1134,8 @@ class H3Connection:
                     raise QpackEncoderStreamError() from exc
                 self._encoder_bytes_received += len(data)
             else:
-                # unknown stream type, discard data
-                buf.seek(buf.capacity)
-                consumed = buf.tell()
+                # unknown stream type, do not discard data for non-conformance
+                pass
 
         # remove processed data from buffer
         stream.buffer = stream.buffer[consumed:]
