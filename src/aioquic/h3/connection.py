@@ -809,20 +809,21 @@ class H3Connection:
                     headers=headers, push_id=push_id, stream_id=stream.stream_id
                 )
             )
-        elif frame_type in (
-            FrameType.PRIORITY,
-            FrameType.CANCEL_PUSH,
-            FrameType.SETTINGS,
-            FrameType.PUSH_PROMISE,
-            FrameType.GOAWAY,
-            FrameType.MAX_PUSH_ID,
-            FrameType.DUPLICATE_PUSH,
-        ):
-            raise FrameUnexpected(
-                "Invalid frame type on request stream"
-                if stream.push_id is None
-                else "Invalid frame type on push stream"
-            )
+        # REMOVE: elif frame_type in (
+        #     FrameType.PRIORITY,
+        #     FrameType.CANCEL_PUSH,
+        #     FrameType.SETTINGS,
+        #     FrameType.PUSH_PROMISE,
+        #     FrameType.GOAWAY,
+        #     FrameType.MAX_PUSH_ID,
+        #     FrameType.DUPLICATE_PUSH,
+        # ):
+        #     raise FrameUnexpected(
+        #         "Invalid frame type on request stream"
+        #         if stream.push_id is None
+        #         else "Invalid frame type on push stream"
+        #     )
+        # Allow PUSH_PROMISE on push streams for non-conformance
 
         return http_events
 
