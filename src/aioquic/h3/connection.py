@@ -305,7 +305,7 @@ def validate_response_headers(
     validate_headers(
         headers,
         allowed_pseudo_headers=frozenset(),  # allow any pseudo-header
-        required_pseudo_headers=frozenset((b":status",)),
+        required_pseudo_headers=frozenset(),  # do not require :status
         stream=stream,
     )
 
