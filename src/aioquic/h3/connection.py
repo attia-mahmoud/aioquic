@@ -251,8 +251,6 @@ def validate_headers(
                 raise MessageError(
                     "Pseudo-header %r is not allowed after regular headers" % key
                 )
-            if key not in allowed_pseudo_headers:
-                raise MessageError("Pseudo-header %r is not valid" % key)
             if key in seen_pseudo_headers:
                 raise MessageError("Pseudo-header %r is included twice" % key)
             seen_pseudo_headers.add(key)
