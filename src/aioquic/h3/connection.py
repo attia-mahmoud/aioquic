@@ -363,13 +363,15 @@ class H3Connection:
     A low-level HTTP/3 connection object.
 
     :param quic: A :class:`~aioquic.quic.connection.QuicConnection` instance.
+    :param skip_settings_frame: If True, do not send the SETTINGS frame on the control stream (for non-conformance testing).
     """
 
-    def __init__(self, quic: QuicConnection, enable_webtransport: bool = False) -> None:
+    def __init__(self, quic: QuicConnection, enable_webtransport: bool = False, skip_settings_frame: bool = False) -> None:
         # settings
         self._max_table_capacity = 4096
         self._blocked_streams = 16
         self._enable_webtransport = enable_webtransport
+        self._skip_settings_frame = skip_settings_frame
 
         self._is_client = quic.configuration.is_client
         self._is_done = False
@@ -670,9 +672,6 @@ class H3Connection:
         """
         Handle a frame received on the peer's control stream.
         """
-        if frame_type != FrameType.SETTINGS and not self._settings_received:
-            raise MissingSettingsError
-
         if frame_type == FrameType.SETTINGS:
             if self._settings_received:
                 raise FrameUnexpected("SETTINGS have already been received")
@@ -838,15 +837,16 @@ class H3Connection:
         # send our settings
         self._local_control_stream_id = self._create_uni_stream(StreamType.CONTROL)
         self._sent_settings = self._get_local_settings()
-        self._quic.send_stream_data(
-            self._local_control_stream_id,
-            encode_frame(FrameType.SETTINGS, encode_settings(self._sent_settings)),
-        )
-        if self._is_client and self._max_push_id is not None:
+        if not self._skip_settings_frame:
             self._quic.send_stream_data(
                 self._local_control_stream_id,
-                encode_frame(FrameType.MAX_PUSH_ID, encode_uint_var(self._max_push_id)),
+                encode_frame(FrameType.SETTINGS, encode_settings(self._sent_settings)),
             )
+            if self._is_client and self._max_push_id is not None:
+                self._quic.send_stream_data(
+                    self._local_control_stream_id,
+                    encode_frame(FrameType.MAX_PUSH_ID, encode_uint_var(self._max_push_id)),
+                )
 
         # create encoder and decoder streams
         self._local_encoder_stream_id = self._create_uni_stream(
