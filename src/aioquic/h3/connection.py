@@ -272,8 +272,7 @@ def validate_headers(
             # Allow Transfer-Encoding header for non-conformance
 
     if scheme in (b"http", b"https"):
-        if not authority:
-            raise MessageError("Pseudo-header b':authority' cannot be empty")
+        pass  # No authority or path checks for non-conformance
 
 
 def validate_push_promise_headers(headers: Headers) -> None:
