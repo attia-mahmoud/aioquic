@@ -281,8 +281,6 @@ def validate_headers(
     if scheme in (b"http", b"https"):
         if not authority:
             raise MessageError("Pseudo-header b':authority' cannot be empty")
-        if not path:
-            raise MessageError("Pseudo-header b':path' cannot be empty")
 
 
 def validate_push_promise_headers(headers: Headers) -> None:
