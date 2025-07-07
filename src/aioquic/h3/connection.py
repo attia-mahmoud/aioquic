@@ -716,10 +716,7 @@ class H3Connection:
         http_events: List[H3Event] = []
 
         if frame_type == FrameType.DATA:
-            # check DATA frame is allowed
-            if stream.headers_recv_state != HeadersState.AFTER_HEADERS:
-                raise FrameUnexpected("DATA frame is not allowed in this state")
-
+            # Allow DATA frames before HEADERS for non-conformance
             if frame_data is not None:
                 stream.content_length += len(frame_data)
 
