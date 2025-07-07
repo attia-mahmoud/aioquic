@@ -521,7 +521,7 @@ class H3Connection:
             ),
         )
 
-        #  create push stream
+        #  create push stream
         push_stream_id = self._create_uni_stream(StreamType.PUSH, push_id=push_id)
         self._quic.send_stream_data(push_stream_id, encode_uint_var(push_id))
 
@@ -736,10 +736,6 @@ class H3Connection:
                     )
                 )
         elif frame_type == FrameType.HEADERS:
-            # check HEADERS frame is allowed
-            if stream.headers_recv_state == HeadersState.AFTER_TRAILERS:
-                raise FrameUnexpected("HEADERS frame is not allowed in this state")
-
             # try to decode HEADERS, may raise pylsqpack.StreamBlocked
             headers = self._decode_headers(stream.stream_id, frame_data)
 
