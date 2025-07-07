@@ -205,7 +205,7 @@ def validate_header_name(key: bytes) -> None:
     Validate a header name as specified by RFC 9113 section 8.2.1.
     """
     for i, c in enumerate(key):
-        if c <= 0x20 or (c >= 0x41 and c <= 0x5A) or c >= 0x7F:
+        if c <= 0x20 or c >= 0x7F:
             raise MessageError("Header %r contains invalid characters" % key)
         if c == COLON and i != 0:
             # Colon not at start, definitely bad.  Keys starting with a colon
