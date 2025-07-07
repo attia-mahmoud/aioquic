@@ -247,8 +247,6 @@ def validate_headers(
 
         if key.startswith(b":"):
             # pseudo-headers
-            if key in seen_pseudo_headers:
-                raise MessageError("Pseudo-header %r is included twice" % key)
             seen_pseudo_headers.add(key)
 
             # store value
@@ -273,11 +271,6 @@ def validate_headers(
                     stream.expected_content_length = content_length
             # Allow Transfer-Encoding header for non-conformance
 
-    # check required pseudo-headers are present
-    missing = required_pseudo_headers.difference(seen_pseudo_headers)
-    if missing:
-        raise MessageError("Pseudo-headers %s are missing" % sorted(missing))
-
     if scheme in (b"http", b"https"):
         if not authority:
             raise MessageError("Pseudo-header b':authority' cannot be empty")
@@ -298,11 +291,11 @@ def validate_push_promise_headers(headers: Headers) -> None:
 def validate_request_headers(
     headers: Headers, stream: Optional["H3Stream"] = None
 ) -> None:
-    # Allow any pseudo-headers in requests for non-conformance
+    # Allow any pseudo-headers in requests for non-conformance, and do not require :method
     validate_headers(
         headers,
         allowed_pseudo_headers=frozenset(),  # allow any pseudo-header
-        required_pseudo_headers=frozenset((b":method", b":authority")),
+        required_pseudo_headers=frozenset(),  # do not require :method
         stream=stream,
     )
 
