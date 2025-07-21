@@ -185,8 +185,9 @@ def parse_settings(data: bytes) -> Dict[int, int]:
     while not buf.eof():
         setting = buf.pull_uint_var()
         value = buf.pull_uint_var()
-        if setting in RESERVED_SETTINGS:
-            raise SettingsError("Setting identifier 0x%x is reserved" % setting)
+        # if setting in RESERVED_SETTINGS:
+        #     raise SettingsError("Setting identifier 0x%x is reserved" % setting)
+        # Allow reserved setting identifiers for non-conformance
         # if setting in settings:
         #     raise SettingsError("Setting identifier 0x%x is included twice" % setting)
         # Allow duplicate setting identifiers for non-conformance
