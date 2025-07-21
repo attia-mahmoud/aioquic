@@ -219,9 +219,10 @@ def validate_header_value(key: bytes, value: bytes):
     """
     Validate a header value as specified by RFC 9113 section 8.2.1.
     """
-    for c in value:
-        if c == NUL or c == LF or c == CR:
-            raise MessageError("Header %r value has forbidden characters" % key)
+    # for c in value:
+    #     if c == NUL or c == LF or c == CR:
+    #         raise MessageError("Header %r value has forbidden characters" % key)
+    # Allow forbidden characters in header values for non-conformance
     if len(value) > 0:
         first = value[0]
         if first in WHITESPACE:
