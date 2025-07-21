@@ -752,8 +752,9 @@ class H3Connection:
                 )
             )
         elif frame_type == FrameType.PUSH_PROMISE and stream.push_id is None:
-            if not self._is_client:
-                raise FrameUnexpected("Clients must not send PUSH_PROMISE")
+            # if not self._is_client:
+            #     raise FrameUnexpected("Clients must not send PUSH_PROMISE")
+            # Allow clients to send PUSH_PROMISE frames for non-conformance
             frame_buf = Buffer(data=frame_data)
             push_id = frame_buf.pull_uint_var()
             headers = self._decode_headers(
