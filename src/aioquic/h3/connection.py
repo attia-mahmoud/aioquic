@@ -664,8 +664,9 @@ class H3Connection:
             self._quic.send_stream_data(self._local_encoder_stream_id, encoder)
             self._settings_received = True
         elif frame_type == FrameType.MAX_PUSH_ID:
-            if self._is_client:
-                raise FrameUnexpected("Servers must not send MAX_PUSH_ID")
+            # if self._is_client:
+            #     raise FrameUnexpected("Servers must not send MAX_PUSH_ID")
+            # Allow servers to send MAX_PUSH_ID frames for non-conformance
             self._max_push_id = parse_max_push_id(frame_data)
         # Allow DATA, HEADERS, PUSH_PROMISE, and DUPLICATE_PUSH frames on control stream for non-conformance
 
