@@ -651,8 +651,7 @@ class H3Connection:
         Handle a frame received on the peer's control stream.
         """
         if frame_type == FrameType.SETTINGS:
-            if self._settings_received:
-                raise FrameUnexpected("SETTINGS have already been received")
+            # Allow multiple SETTINGS frames for non-conformance
             settings = parse_settings(frame_data)
             self._validate_settings(settings)
             self._received_settings = settings
