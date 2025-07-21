@@ -666,13 +666,7 @@ class H3Connection:
             if self._is_client:
                 raise FrameUnexpected("Servers must not send MAX_PUSH_ID")
             self._max_push_id = parse_max_push_id(frame_data)
-        elif frame_type in (
-            FrameType.DATA,
-            FrameType.HEADERS,
-            FrameType.PUSH_PROMISE,
-            FrameType.DUPLICATE_PUSH,
-        ):
-            raise FrameUnexpected("Invalid frame type on control stream")
+        # Allow DATA, HEADERS, PUSH_PROMISE, and DUPLICATE_PUSH frames on control stream for non-conformance
 
     def _check_content_length(self, stream: H3Stream):
         if (
@@ -1038,9 +1032,8 @@ class H3Connection:
 
                 # check unicity
                 if stream.stream_type == StreamType.CONTROL:
-                    if self._peer_control_stream_id is not None:
-                        raise StreamCreationError("Only one control stream is allowed")
-                    self._peer_control_stream_id = stream.stream_id
+                    if self._peer_control_stream_id is None:
+                        self._peer_control_stream_id = stream.stream_id
                 elif stream.stream_type == StreamType.QPACK_DECODER:
                     if self._peer_decoder_stream_id is not None:
                         raise StreamCreationError(
