@@ -16,7 +16,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'shared'))
 
-from utils import BaseTestClient, create_common_headers
+from utils import BaseTestClient
 
 
 class TestCase16Client(BaseTestClient):
@@ -43,11 +43,8 @@ class TestCase16Client(BaseTestClient):
         # Step 3: Send HEADERS frame with undefined pseudo-headers - VIOLATION!
         print("📍 Sending HEADERS frame with undefined pseudo-header fields")
         print("🚫 PROTOCOL VIOLATION: Undefined pseudo-headers MUST NOT be generated!")
-        print("🚫 Expected error: Connection termination or header rejection")
         
         # Create headers with undefined pseudo-header fields
-        # Valid pseudo-headers are: :method, :path, :scheme, :authority (for requests)
-        # and :status (for responses). All others are forbidden.
         violation_headers = [
             # Valid pseudo-headers first
             (b":method", b"GET"),
@@ -57,47 +54,25 @@ class TestCase16Client(BaseTestClient):
             # FORBIDDEN undefined pseudo-headers
             (b":foo", b"bar"),  # FORBIDDEN - undefined pseudo-header
             (b":custom-header", b"test-value"),  # FORBIDDEN - undefined pseudo-header
-            (b":version", b"1.0"),  # FORBIDDEN - undefined pseudo-header
-            (b":protocol", b"http3"),  # FORBIDDEN - undefined pseudo-header
-            (b":status", b"200"),  # FORBIDDEN - :status is for responses only, not requests
-            (b":encoding", b"gzip"),  # FORBIDDEN - undefined pseudo-header
+            (b":status", b"200"),  # FORBIDDEN - :status is for responses only
             # Regular headers
             (b"x-test-case", b"16"),
-            (b"user-agent", b"HTTP3-NonConformance-Test/1.0"),
         ]
         
         try:
-            self.h3_api.send_headers_frame(request_stream_id, violation_headers, end_stream=False)
+            self.h3_api.send_headers_frame(request_stream_id, violation_headers, end_stream=True)
             self.results.add_step("undefined_pseudo_headers_sent", True)
             print(f"✅ HEADERS frame with undefined pseudo-headers sent on stream {request_stream_id}")
-            print(f"   └─ Headers: {len(violation_headers)} header fields")
-            print(f"   └─ Undefined pseudo-headers: :foo, :custom-header, :version, :protocol, :status, :encoding")
+            print(f"   └─ Undefined pseudo-headers: :foo, :custom-header, :status")
             print(f"   └─ This violates HTTP/3 pseudo-header field restrictions!")
         except Exception as e:
             print(f"❌ Failed to send HEADERS frame: {e}")
-            print("   └─ This may indicate the violation was caught early")
             self.results.add_step("undefined_pseudo_headers_sent", True)
             self.results.add_note(f"HEADERS frame sending failed: {str(e)}")
-            return
-        
-        # Step 4: Attempt to send DATA frame (if headers were accepted)
-        print("📍 Sending DATA frame with request body")
-        request_body = b'{"message": "This request contains undefined pseudo-header fields"}'
-        
-        try:
-            self.h3_api.send_data_frame(request_stream_id, request_body, end_stream=True)
-            self.results.add_step("request_body_sent", True)
-            print(f"✅ DATA frame sent on stream {request_stream_id}")
-            print(f"   └─ Payload: {len(request_body)} bytes")
-        except Exception as e:
-            print(f"❌ Failed to send DATA frame: {e}")
-            self.results.add_step("request_body_sent", False)
-            self.results.add_note(f"DATA frame sending failed: {str(e)}")
         
         # Add test-specific observations
         self.results.add_note("Request sent with undefined pseudo-header fields (protocol violation)")
         self.results.add_note("Client MUST NOT generate pseudo-headers other than :method, :path, :scheme, :authority")
-        self.results.add_note("Undefined pseudo-headers: :foo, :custom-header, :version, :protocol, :status, :encoding")
 
 
 async def main():

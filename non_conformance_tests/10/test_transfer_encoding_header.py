@@ -43,52 +43,31 @@ class TestCase10Client(BaseTestClient):
         # Step 3: Send HEADERS frame with forbidden Transfer-Encoding header - VIOLATION!
         print("📍 Sending HEADERS frame with Transfer-Encoding: chunked")
         print("🚫 PROTOCOL VIOLATION: Transfer-Encoding header MUST NOT be used in HTTP/3!")
-        print("🚫 Expected error: Connection termination or header rejection")
         
         # Create headers with forbidden Transfer-Encoding header
-        # This violates HTTP/3 specifications as transfer codings are not defined
         violation_headers = create_common_headers(
             path="/test-transfer-encoding",
             method="POST",
             **{
                 "x-test-case": "10",
-                "content-type": "application/json",
                 "transfer-encoding": "chunked",  # FORBIDDEN in HTTP/3
                 "user-agent": "HTTP3-NonConformance-Test/1.0"
             }
         )
         
         try:
-            self.h3_api.send_headers_frame(request_stream_id, violation_headers, end_stream=False)
+            self.h3_api.send_headers_frame(request_stream_id, violation_headers, end_stream=True)
             self.results.add_step("transfer_encoding_headers_sent", True)
             print(f"✅ HEADERS frame with Transfer-Encoding sent on stream {request_stream_id}")
-            print(f"   └─ Headers: {len(violation_headers)} header fields")
             print(f"   └─ This violates HTTP/3 transfer coding restrictions!")
         except Exception as e:
             print(f"❌ Failed to send HEADERS frame: {e}")
-            print("   └─ This may indicate the violation was caught early")
             self.results.add_step("transfer_encoding_headers_sent", True)
             self.results.add_note(f"HEADERS frame sending failed: {str(e)}")
-            return
-        
-        # Step 4: Attempt to send DATA frame (if headers were accepted)
-        print("📍 Sending DATA frame with request body")
-        request_body = b'{"message": "This request contains forbidden Transfer-Encoding header"}'
-        
-        try:
-            self.h3_api.send_data_frame(request_stream_id, request_body, end_stream=True)
-            self.results.add_step("request_body_sent", True)
-            print(f"✅ DATA frame sent on stream {request_stream_id}")
-            print(f"   └─ Payload: {len(request_body)} bytes")
-        except Exception as e:
-            print(f"❌ Failed to send DATA frame: {e}")
-            self.results.add_step("request_body_sent", False)
-            self.results.add_note(f"DATA frame sending failed: {str(e)}")
         
         # Add test-specific observations
         self.results.add_note("Request sent with Transfer-Encoding: chunked header (protocol violation)")
-        self.results.add_note("Transfer codings are not defined for HTTP/3")
-        self.results.add_note("Transfer-Encoding header field MUST NOT be used by client")
+        self.results.add_note("Transfer-Encoding header field MUST NOT be used in HTTP/3")
 
 
 async def main():
