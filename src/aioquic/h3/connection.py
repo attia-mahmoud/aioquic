@@ -67,6 +67,7 @@ class FrameType(IntEnum):
     GOAWAY = 0x7
     MAX_PUSH_ID = 0xD
     DUPLICATE_PUSH = 0xE
+    PRIORITY_UPDATE = 0xF
     WEBTRANSPORT_STREAM = 0x41
 
 
