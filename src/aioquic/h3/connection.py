@@ -519,10 +519,10 @@ class H3Connection:
         :param data: The data to send.
         :param end_stream: Whether to end the stream.
         """
-        # check DATA frame is allowed
+        # Allow DATA frame in any state for non-conformance
         stream = self._get_or_create_stream(stream_id)
-        if stream.headers_send_state != HeadersState.AFTER_HEADERS:
-            raise FrameUnexpected("DATA frame is not allowed in this state")
+        # if stream.headers_send_state != HeadersState.AFTER_HEADERS:
+        #     raise FrameUnexpected("DATA frame is not allowed in this state")
 
         # log frame
         if self._quic_logger is not None:
@@ -552,8 +552,8 @@ class H3Connection:
         """
         # check HEADERS frame is allowed
         stream = self._get_or_create_stream(stream_id)
-        if stream.headers_send_state == HeadersState.AFTER_TRAILERS:
-            raise FrameUnexpected("HEADERS frame is not allowed in this state")
+        # if stream.headers_send_state == HeadersState.AFTER_TRAILERS:
+        #     raise FrameUnexpected("HEADERS frame is not allowed in this state")
 
         frame_data = self._encode_headers(stream_id, headers)
 
